@@ -1,7 +1,7 @@
 # .NET Core 2.x application
 ## Countries List
 
-This application is based on .Net Core 2.X.
+This application is based on .Net Core 2.x with Sqlite as DB.
 
 Demo app to showcase the flow of data in MVC.
 
@@ -18,3 +18,5 @@ Tools Used In creation:
 -- dotnet CLI
 
 -- VS Code
+
+-- DB Browser for SQLite
