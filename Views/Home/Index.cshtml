@@ -1,0 +1,129 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div id="search-form" style="margin:50px;">
+    
+</div>
+
+
+
+<table id="tableData" class="table table-inverse">
+  <thead>
+    <tr>
+      <th>Code</th>
+      <th>Country Name</th>
+      <th>Country Capital</th>
+      <th>Currency Rate</th>
+      <th>Map</th>
+      <th>Favorite</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="country_code" scope="row"></th>
+      <td id="country_name"></td>
+      <td id="country_capital"></td>
+      <td id="country_rate"></td>
+      <td id="country_map">
+          <div class="mapouter">
+            <div class="gmap_canvas">
+                <iframe width="150" height="150" id="gmap_canvas" src="https://maps.google.com/maps?q=India&t=&z=3&ie=UTF8&iwloc=&output=embed" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>
+                </div>
+            <style>.mapouter{overflow:hidden;height:150px;width:150px;}.gmap_canvas {background:none!important;height:150px;width:150px;}</style>
+          </div>
+      </td>
+      <td>
+          <button type="button" id="like-button" class="btn btn-primary btn-lg">Like</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<script>
+    $(document).ready(function(){
+        $('#tableData').hide();
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("GetAllCountries")',
+            success: function (data) {
+                $('#search-form').autocomplete({
+                    hints: data,
+                    width: 320,
+                    height: 43,
+                    showButton: false,
+                    onSubmit: function(text){
+                        $('#tableData').hide();
+                        $.ajax({
+                            type: 'POST',
+                            dataType: 'json',
+                            url: '@Url.Action("GetCountryData")',
+                            data: {"countryName": text},
+                            success: function (data) {
+                                console.log(data);  
+                                $("#country_code").text(data.countryCode);
+                                $("#country_name").text(data.countryName);
+                                $("#country_capital").text(data.countryCapital);
+                                $("#country_map .mapouter .gmap_canvas iframe").attr("src", data.countryMapURI);
+                                $("#country_rate").text(parseFloat(data.currencyValue).toFixed(2) + " Indian rupee(s)");
+                                if(data.isFavorite === "0")
+                                {
+                                    $("#like-button").addClass("unlike-button");
+                                    $("#like-button").html("Like");
+                                }
+                                else{
+                                    $("#like-button").addClass("like-button");
+                                    $("#like-button").html("Liked");
+                                }
+                                $('#tableData').show();                             
+                            },
+                            error: function (ex) {
+                                var r = jQuery.parseJSON(response.responseText);
+                                alert("Message: " + r.Message);
+                                alert("StackTrace: " + r.StackTrace);
+                                alert("ExceptionType: " + r.ExceptionType);
+                            }
+                        });			
+                    }
+                });
+            },
+            error: function (ex) {
+                var r = jQuery.parseJSON(response.responseText);
+                alert("Message: " + r.Message);
+                alert("StackTrace: " + r.StackTrace);
+                alert("ExceptionType: " + r.ExceptionType);
+            }
+        });
+
+        $("#like-button").click(function(){
+            var isLike = ($("#like-button").html() === "Like");
+            ToggleLike(isLike, $("#country_name").html());
+        });
+    });
+    function ToggleLike(isLiked, countryName){
+        $.ajax({
+            type: 'POST',
+            dataType: 'json',
+            url: '@Url.Action("ToggleLike")',
+            data: {"isLiked": isLiked, "countryName": countryName},
+            success: function (data) {
+                console.log(data);  
+                if(data.isLiked === "False")
+                {
+                    $("#like-button").addClass("unlike-button");
+                    $("#like-button").html("Like");
+                }
+                else{
+                    $("#like-button").addClass("like-button");
+                    $("#like-button").html("Liked");
+                }                  
+            },
+            error: function (ex) {
+                var r = jQuery.parseJSON(response.responseText);
+                alert("Message: " + r.Message);
+                alert("StackTrace: " + r.StackTrace);
+                alert("ExceptionType: " + r.ExceptionType);
+            }
+        });	
+    }
+</script>
