@@ -34,19 +34,19 @@
     }
 }
 
-.unlike-button {
+.liked-button {
     width: 100px;
-    background-color: white;
+    background-color: #008CBA;
     color: black;
 }
 
 .like-button {
     width: 100px;
-    background-color: red;
+    background-color: white;
     color: black;
 }
 
-.like-button:hover, .unlike-button:hover {    
+.like-button:hover, .liked-button:hover {    
     background-color: #008CBA;
     color: white;
 }
@@ -56,4 +56,17 @@
     position: absolute;
     left: 50%;
     margin: 0 -50px;
+}
+
+img { 
+    border:1px solid #021a40;
+}
+
+.table {
+    margin-top: 50px;
+}
+
+.nav-pagination{
+    position: fixed;
+    right: 120px;
 }

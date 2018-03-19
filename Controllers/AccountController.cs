@@ -247,7 +247,7 @@ namespace CountriesList.Controllers
         {
             await _signInManager.SignOutAsync();
             _logger.LogInformation("User logged out.");
-            return RedirectToAction(nameof(HomeController.Index), "Home");
+            return RedirectToAction(nameof(AccountController.Login), "Home");
         }
 
         [HttpPost]
@@ -335,7 +335,7 @@ namespace CountriesList.Controllers
         {
             if (userId == null || code == null)
             {
-                return RedirectToAction(nameof(HomeController.Index), "Home");
+                return RedirectToAction(nameof(AccountController.Login), "Home");
             }
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
@@ -455,7 +455,7 @@ namespace CountriesList.Controllers
             }
             else
             {
-                return RedirectToAction(nameof(HomeController.Index), "Home");
+                return RedirectToAction(nameof(HomeController.Search), "Home");
             }
         }
 

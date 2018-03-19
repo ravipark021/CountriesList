@@ -12,6 +12,7 @@ using System.Text;
 using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
+using CountriesList.Helpers;
 
 namespace CountriesList.Controllers
 {
@@ -24,7 +25,7 @@ namespace CountriesList.Controllers
         {
             _dbContext = dbContext;
         }
-        public IActionResult Index()
+        public IActionResult Search()
         {
             var countries = _dbContext.Country.Select(x => x).ToList();
             System.Console.WriteLine(countries.Count());
@@ -46,61 +47,17 @@ namespace CountriesList.Controllers
             var country = _dbContext.Country.Where(x => x.Name.Equals(countryName)).SingleOrDefault();
             if (country == null)
                 return Json(null);
-            Dictionary<string, string> countryData = PopulateCountryData(country);
-            return Json(countryData);
-        }
-
-        public Dictionary<string, string> PopulateCountryData(Country country)
-        {
-            Dictionary<string, string> countryData = new Dictionary<string, string>();
-            string countryMapURI = "https://maps.google.com/maps?q=" + country.Name + "&t=&z=3&ie=UTF8&iwloc=&output=embed";
-            string countryDataAPI = "https://restcountries.eu/rest/v2/alpha/" + country.ShortName + "?fields=capital;currencies";
-            string countryFlag = "http://www.countryflags.io/" + country.ShortName + "/flat/64.png";
-
-            var countryDataResponse = Utils.Utilities.Get(countryDataAPI);
-            var JsonResponse = JObject.Parse(countryDataResponse.Result);
-            string countryCapital = JsonResponse["capital"].ToString();
-
-            var JSONCurrencyResponse = JObject.Parse(JsonResponse["currencies"][0].ToString());
-            string currencyCode = JSONCurrencyResponse["code"].ToString();
-            string currencyName = JSONCurrencyResponse["name"].ToString();
-
-            string currencyDataAPI = "https://free.currencyconverterapi.com/api/v5/convert?q=" + currencyCode + "_INR&compact=ultra";
-
-            string currencyValue = string.Empty;
-            try
-            {
-                var currencyValueResponse = Utils.Utilities.Get(currencyDataAPI);
-                var currencyValueJsonResponse = JObject.Parse(currencyValueResponse.Result);
-                currencyValue = currencyValueJsonResponse.First.First.ToString();
-            }
-            catch (System.Exception exception)
-            {
-                System.Console.WriteLine(exception);
-            }
 
             var userId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
-
             bool isFavorite = _dbContext.Favorites.Any(x => x.UserId.Equals(userId) && x.CountryId.Equals(country.CountryId));
 
-            countryData["isFavorite"] = isFavorite ? "1" : "0";
-            countryData["countryName"] = country.Name;
-            countryData["countryCode"] = country.ShortName;
-            countryData["currencyCode"] = currencyCode;
-            countryData["currencyName"] = currencyName;
-            countryData["currencyValue"] = currencyValue;
-            countryData["countryCapital"] = countryCapital;
-            countryData["countryMapURI"] = countryMapURI;
-            countryData["countryFlag"] = countryFlag;
-
-            return countryData;
+            CountryViewModel countryData = CountryMaker.PopulateFullCountryData(country, isFavorite);
+            return Json(countryData);
         }
-
-
         [HttpPost]
         public JsonResult ToggleLike(bool isLiked, string countryName)
         {
-            Dictionary<string, string> returnData = new Dictionary<string, string>();
+            string error = string.Empty;
             var userId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
             var country = _dbContext.Country.Where(x => x.Name.Equals(countryName)).FirstOrDefault();
             if (country != null)
@@ -123,24 +80,31 @@ namespace CountriesList.Controllers
                             _dbContext.SaveChanges();
                         }
                     }
-                    returnData["Error"] = "";
-                    returnData["isLiked"] = isLiked.ToString();
                 }
                 catch (System.Exception)
                 {
-                    returnData["Error"] = "Some error encountered";
-                    returnData["isLiked"] = (!isLiked).ToString();
+                    error = "Some error encountered";
+                    isLiked = !isLiked;
                 }
 
             }
-            return Json(returnData);
+            return Json(new { error = error, isLiked = isLiked });
         }
 
         [HttpGet]
-        public IActionResult Favorites()
+        public IActionResult Favorites(string sortOrder, string currentFilter,
+            string searchString,
+            int? page)
         {
-            ViewData["favorites"] = GetAllFavorites();
-            return View();
+            int pageSize = 10;
+            var favoriteCountries = GetAllFavorites();
+            List<CountryViewModel> paginatedCountryDataList = new List<CountryViewModel>();
+            var paginatedCountryList = PaginatedList<Country>.CreateNonAsync(favoriteCountries, page ?? 1, pageSize);
+            Parallel.ForEach((List<Country>)paginatedCountryList, (country) =>
+            {
+                paginatedCountryDataList.Add(CountryMaker.PopulateFullCountryData(country, true));
+            });
+            return View(new PaginatedList<CountryViewModel>(paginatedCountryDataList, favoriteCountries.Count(), page ?? 1, pageSize));
         }
 
         public IActionResult About()
@@ -161,23 +125,19 @@ namespace CountriesList.Controllers
         }
 
         [HttpGet]
-        public JsonResult GetAllFavorites(int pageNumber = 0)
+        public IEnumerable<Country> GetAllFavorites()
         {
-            List<Dictionary<string, string>> userFavorites = new List<Dictionary<string, string>>();
+            List<Country> userFavorites = new List<Country>();
             var userId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
             var favorites = _dbContext.Favorites.Where(x => x.UserId.Equals(userId)).ToList();
 
-            foreach (var favorite in GetPage(favorites, pageNumber, 10))
+            foreach (var favorite in favorites)
             {
                 var countryData = _dbContext.Country.Where(x => x.CountryId.Equals(favorite.CountryId)).FirstOrDefault();
                 if (countryData != null)
-                    userFavorites.Add(PopulateCountryData(countryData));
+                    userFavorites.Add(countryData);
             }
-            return Json(userFavorites);
-        }
-
-        IList<Models.Favorites> GetPage(IList<Models.Favorites> list, int page, int pageSize) {
-            return list.Skip(page*pageSize).Take(pageSize).ToList();
+            return userFavorites;
         }
     }
 }

@@ -2,7 +2,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CountriesList.Utils
+namespace CountriesList.Helpers
 {
     public static class Utilities
     {

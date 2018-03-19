@@ -1,4 +1,27 @@
 
+@model PaginatedList<CountriesList.Models.CountryViewModel>
+
+@{
+    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+}
+<nav class="nav-pagination" aria-label="Pagination navigation">
+  <a asp-action="Favorites"
+   asp-route-sortOrder="@ViewData["CurrentSort"]"
+   asp-route-page="@(Model.PageIndex - 1)"
+   asp-route-currentFilter="@ViewData["CurrentFilter"]"
+   class="btn btn-default @prevDisabled">
+    Previous
+</a>
+<a asp-action="Favorites"
+   asp-route-sortOrder="@ViewData["CurrentSort"]"
+   asp-route-page="@(Model.PageIndex + 1)"
+   asp-route-currentFilter="@ViewData["CurrentFilter"]"
+   class="btn btn-default @nextDisabled">
+    Next
+</a>
+</nav>
+
 <table id="tableData" class="table table-inverse">
   <thead>
     <tr>
@@ -11,76 +34,59 @@
       <th>Favorite</th>
     </tr>
   </thead>
-  <tbody>
-    
-  </tbody>
+  @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CountryCode)
+                </td>
+                <td id="country_name">@Html.DisplayFor(modelItem => item.CountryName)</td>
+                <td id="country_flag"><img src='@Html.DisplayFor(modelItem => item.CountryFlag)'></td>
+                <td id="country_capital">@Html.DisplayFor(modelItem => item.CountryCapital)</td>
+                <td id="country_rate">@Html.DisplayFor(modelItem => item.CurrencyValue) Indian rupee(s)</td>
+                <td id="country_map">
+                    <div class="mapouter">
+                      <div class="gmap_canvas">
+                          <iframe width="150" height="150" id="gmap_canvas" src="@Html.DisplayFor(modelItem => item.CountryMapURI)" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>
+                          </div>
+                      <style>.mapouter{overflow:hidden;height:150px;width:150px;}.gmap_canvas {background:none!important;height:150px;width:150px;}</style>
+                    </div>
+                </td>
+                <td>
+                @if(item.IsFavorite){
+                  <button type="button" id="unlike-button" class="btn btn-primary btn-lg btn-unlike">Liked</button>
+                }
+                else{
+                  <button type="button" id="like-button" class="btn btn-primary btn-lg">Like</button>
+                }
+                </td>
+            </tr>
+        }
 </table>
 <div id="myDiv">
         <img id="loading-image" src="~/Images/ajax-loader.gif" style="display:none;"/>
     </div>
 <script>
   $(document).ready(function(){
-    $.ajax({
-        type: 'GET',
-        url: '@Url.Action("GetAllFavorites")',
-        beforeSend: function() {
-          $("#loading-image").show();
-        },
-        success: function (favorites) {
-          console.log(favorites);
-          var favoriteHtml = '';
-          favorites.forEach(function(favorite){
-            favoriteHtml += '<tr>'+
-                  '<th id="country_code" scope="row">' + favorite["countryCode"] + '</th>'+
-                  '<td id="country_name">' + favorite["countryName"] + '</td>'+
-                  '<td id="country_flag"><img src=' + favorite["countryFlag"] + '></td>'+
-                  '<td id="country_capital">' + favorite["countryCapital"] + '</td>'+
-                  '<td id="country_rate">' + parseFloat(favorite["currencyValue"]).toFixed(2) + ' Indian rupee(s)</td>'+
-                  '<td id="country_map">'+
-                      '<div class="mapouter">'+
-                        '<div class="gmap_canvas">'+
-                            '<iframe width="150" height="150" id="gmap_canvas" src="' + favorite["countryMapURI"] + '" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>'+
-                            '</div>'+
-                        '<style>.mapouter{overflow:hidden;height:150px;width:150px;}.gmap_canvas {background:none!important;height:150px;width:150px;}</style>'+
-                     '</div>'+
-                  '</td>'+
-                  '<td>';
-            favoriteHtml += (favorite["isFavorite"] === "1") ? '<button type="button" id="unlike-button" class="btn btn-primary btn-lg btn-unlike">Liked</button>' 
-                                    : '<button type="button" id="like-button" class="btn btn-primary btn-lg">Like</button>';
-            favoriteHtml += '</td>'+
-                '</tr>' 
-          }); 
-          $("#loading-image").hide();
-          $('#tableData tbody').append(favoriteHtml);  
-        },
-        error: function (ex) {
-            var r = jQuery.parseJSON(response.responseText);
-            alert("Message: " + r.Message);
-            alert("StackTrace: " + r.StackTrace);
-            alert("ExceptionType: " + r.ExceptionType);
-        }
+    $(".btn-unlike").click(function(event){
+      console.log($(this).closest("tr"));
+      $(this).closest("tr").fadeOut();   
+      var countryName = $(this).closest("tr").children("td#country_name").html()
+      $.ajax({
+          type: 'POST',
+          dataType: 'json',
+          url: '@Url.Action("ToggleLike")',
+          data: {"isLiked": false, "countryName": countryName},
+          success: function (data) {
+              console.log(data);                 
+          },
+          error: function (ex) {
+              var r = jQuery.parseJSON(response.responseText);
+              alert("Message: " + r.Message);
+              alert("StackTrace: " + r.StackTrace);
+              alert("ExceptionType: " + r.ExceptionType);
+          }
+      });	
     });
-  });
-  $(document).ajaxComplete(function(){
-      $(".btn-unlike").click(function(event){
-        console.log($(this).closest("tr"));
-        $(this).closest("tr").fadeOut();   
-        var countryName = $(this).closest("tr").children("td#country_name").html()
-        $.ajax({
-            type: 'POST',
-            dataType: 'json',
-            url: '@Url.Action("ToggleLike")',
-            data: {"isLiked": false, "countryName": countryName},
-            success: function (data) {
-                console.log(data);                 
-            },
-            error: function (ex) {
-                var r = jQuery.parseJSON(response.responseText);
-                alert("Message: " + r.Message);
-                alert("StackTrace: " + r.StackTrace);
-                alert("ExceptionType: " + r.ExceptionType);
-            }
-        });	
-      });
   });
 </script>

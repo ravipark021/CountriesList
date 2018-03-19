@@ -66,13 +66,15 @@
                                 $("#country_capital").text(data.countryCapital);
                                 $("#country_map .mapouter .gmap_canvas iframe").attr("src", data.countryMapURI);
                                 $("#country_rate").text(parseFloat(data.currencyValue).toFixed(2) + " Indian rupee(s)");
-                                if(data.isFavorite === "0")
+                                if(!data.isFavorite)
                                 {
-                                    $("#like-button").addClass("unlike-button");
+                                    $("#like-button").removeClass("liked-button");
+                                    $("#like-button").addClass("like-button");
                                     $("#like-button").html("Like");
                                 }
                                 else{
-                                    $("#like-button").addClass("like-button");
+                                    $("#like-button").removeClass("like-button");
+                                    $("#like-button").addClass("liked-button");
                                     $("#like-button").html("Liked");
                                 }
                                 $('#tableData').show();                             
@@ -108,14 +110,16 @@
             data: {"isLiked": isLiked, "countryName": countryName},
             success: function (data) {
                 console.log(data);  
-                if(data.isLiked === "False")
+                if(data.isLiked)
                 {
-                    $("#like-button").addClass("unlike-button");
-                    $("#like-button").html("Like");
+                    $("#like-button").addClass("liked-button");
+                    $("#like-button").removeClass("like-button");
+                    $("#like-button").html("Liked");
                 }
                 else{
                     $("#like-button").addClass("like-button");
-                    $("#like-button").html("Liked");
+                    $("#like-button").removeClass("liked-button");
+                    $("#like-button").html("Like");
                 }                  
             },
             error: function (ex) {
