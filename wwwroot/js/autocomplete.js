@@ -102,13 +102,13 @@ Author: Lorenzo Cioni - https://github.com/lorecioni
 						var word = "^" + input.val() + ".*";
 						proposalList.empty();
 						for(var test in params.hints){
-							if(params.hints[test].match(new RegExp(word, 'i')) && proposalList[0].childNodes.length <= 10){
-								currentProposals.push(params.hints[test]);	
+							if(params.hints[test].name.match(new RegExp(word, 'i')) && proposalList[0].childNodes.length <= 10){
+								currentProposals.push(params.hints[test].name);	
 								var element = $('<li></li>')
-									.html(params.hints[test])
+									.html('<img class="inline-img" src="http://www.countryflags.io/'+params.hints[test].shortName+'/flat/64.png">'+params.hints[test].name)
 									.addClass('proposal')
 									.click(function(){
-										input.val($(this).html());
+										input.val($(this).html().split('>')[1]);
 										proposalList.empty();
 										params.onSubmit(input.val());
 									})

@@ -8,64 +8,78 @@
 
 
 
-<table id="tableData" class="table table-inverse">
-  <thead>
-    <tr>
-      <th>Code</th>
-      <th>Country Name</th>
-      <th>Country Capital</th>
-      <th>Currency Rate</th>
-      <th>Map</th>
-      <th>Favorite</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th id="country_code" scope="row"></th>
-      <td id="country_name"></td>
-      <td id="country_capital"></td>
-      <td id="country_rate"></td>
-      <td id="country_map">
+<div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog">
+    
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header country-name">
+          <h2 class="modal-title" style="float: left;"></h2>
+          <button type="button" id="like-button" class="btn btn-primary btn-lg" style="float: right;">Like</button>
+        </div>
+        <div class="modal-body">
+          <div class="country-info">
+            <h4>Information</h4>
+            <div>Country Code: <span id="country-code"></span></div>
+            <div>Country Capital: <span id="country-capital"></span></div>
+            <div>Country Flag : <img id="country-flag"></span></div>
+          </div>
+          <div class="country-currency-info">
+            <h4>Currencies</h4>
+            <div>Currency Name: <span id="currency-name"></span></div>
+            <div>Currency Code: <span id="currency-code"></span></div>
+            <div>Convert to INR: <span id="currency-value"></span></div>
+          </div>
+          <div class="country-location-info">
+          <h4>Location</h4>
           <div class="mapouter">
             <div class="gmap_canvas">
-                <iframe width="150" height="150" id="gmap_canvas" src="https://maps.google.com/maps?q=India&t=&z=3&ie=UTF8&iwloc=&output=embed" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>
+                <iframe width="550" height="350" id="gmap_canvas" src="https://maps.google.com/maps?q=India&t=&z=3&ie=UTF8&iwloc=&output=embed" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>
                 </div>
-            <style>.mapouter{overflow:hidden;height:150px;width:150px;}.gmap_canvas {background:none!important;height:150px;width:150px;}</style>
+            <style>.mapouter{overflow:hidden;height:350px;width:550px;}.gmap_canvas {background:none!important;height:350px;width:550px;}</style>
           </div>
-      </td>
-      <td>
-          <button type="button" id="like-button" class="btn btn-primary btn-lg">Like</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+      
+    </div>
+  </div>
 
 <script>
     $(document).ready(function(){
-        $('#tableData').hide();
+        //$('#tableData').hide();
         $.ajax({
             type: 'POST',
             url: '@Url.Action("GetAllCountries")',
             success: function (data) {
+                console.log(data);
                 $('#search-form').autocomplete({
                     hints: data,
-                    width: 320,
-                    height: 43,
+                    width: 500,
+                    height: 50,
                     showButton: false,
                     onSubmit: function(text){
-                        $('#tableData').hide();
+                        //$('#tableData').hide();
                         $.ajax({
                             type: 'POST',
                             dataType: 'json',
                             url: '@Url.Action("GetCountryData")',
                             data: {"countryName": text},
                             success: function (data) {
+                                $('#myModal').modal('show');
+                                $('.modal-title').text(data.countryName);
                                 console.log(data);  
-                                $("#country_code").text(data.countryCode);
-                                $("#country_name").text(data.countryName);
-                                $("#country_capital").text(data.countryCapital);
-                                $("#country_map .mapouter .gmap_canvas iframe").attr("src", data.countryMapURI);
-                                $("#country_rate").text(parseFloat(data.currencyValue).toFixed(2) + " Indian rupee(s)");
+                                $("#country-code").text(data.countryCode);
+                                $("#country-name").text(data.countryName);
+                                $("#country-capital").text(data.countryCapital);
+                                $(".modal-body .mapouter .gmap_canvas iframe").attr("src", data.countryMapURI);
+                                $('#currency-name').text(data.currencyName);
+                                $('#currency-code').text(data.currencyCode);
+                                $("#currency-value").text(parseFloat(data.currencyValue).toFixed(3) + " Indian rupee(s)");
+                                $("#country-flag").attr('src', data.countryFlag);
                                 if(!data.isFavorite)
                                 {
                                     $("#like-button").removeClass("liked-button");
@@ -77,13 +91,11 @@
                                     $("#like-button").addClass("liked-button");
                                     $("#like-button").html("Liked");
                                 }
-                                $('#tableData').show();                             
+                                //$('#tableData').show();                             
                             },
                             error: function (ex) {
                                 var r = jQuery.parseJSON(response.responseText);
                                 alert("Message: " + r.Message);
-                                alert("StackTrace: " + r.StackTrace);
-                                alert("ExceptionType: " + r.ExceptionType);
                             }
                         });			
                     }
@@ -92,14 +104,12 @@
             error: function (ex) {
                 var r = jQuery.parseJSON(response.responseText);
                 alert("Message: " + r.Message);
-                alert("StackTrace: " + r.StackTrace);
-                alert("ExceptionType: " + r.ExceptionType);
             }
         });
 
         $("#like-button").click(function(){
             var isLike = ($("#like-button").html() === "Like");
-            ToggleLike(isLike, $("#country_name").html());
+            ToggleLike(isLike, $(".modal-title").html());
         });
     });
     function ToggleLike(isLiked, countryName){
@@ -125,8 +135,6 @@
             error: function (ex) {
                 var r = jQuery.parseJSON(response.responseText);
                 alert("Message: " + r.Message);
-                alert("StackTrace: " + r.StackTrace);
-                alert("ExceptionType: " + r.ExceptionType);
             }
         });	
     }

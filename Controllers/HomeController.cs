@@ -28,14 +28,13 @@ namespace CountriesList.Controllers
         public IActionResult Search()
         {
             var countries = _dbContext.Country.Select(x => x).ToList();
-            System.Console.WriteLine(countries.Count());
             return View(countries);
         }
 
         [HttpPost]
         public JsonResult GetAllCountries()
         {
-            var countries = _dbContext.Country.Select(x => x.Name).ToList();
+            var countries = _dbContext.Country.Select(x => new {x.Name, x.ShortName}).ToList();
             return Json(countries);
         }
 

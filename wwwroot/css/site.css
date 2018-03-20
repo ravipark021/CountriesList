@@ -57,10 +57,10 @@
     left: 50%;
     margin: 0 -50px;
 }
-
+/* 
 img { 
-    border:1px solid #021a40;
-}
+    /* border:1px solid #021a40; 
+} */
 
 .table {
     margin-top: 50px;
@@ -69,4 +69,11 @@ img {
 .nav-pagination{
     position: fixed;
     right: 120px;
+}
+
+.inline-img{
+    border: none;
+    overflow: hidden;
+    width: 4rem;
+    height: 4rem;
 }
