@@ -247,7 +247,7 @@ namespace CountriesList.Controllers
         {
             await _signInManager.SignOutAsync();
             _logger.LogInformation("User logged out.");
-            return RedirectToAction(nameof(AccountController.Login), "Home");
+            return RedirectToAction(nameof(AccountController.Login), "Account");
         }
 
         [HttpPost]
@@ -335,7 +335,7 @@ namespace CountriesList.Controllers
         {
             if (userId == null || code == null)
             {
-                return RedirectToAction(nameof(AccountController.Login), "Home");
+                return RedirectToAction(nameof(AccountController.Login), "Account");
             }
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
