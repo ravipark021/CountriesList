@@ -1,7 +1,7 @@
 {
   "runtimeTarget": {
     "name": ".NETCoreApp,Version=v2.0",
-    "signature": "e531c305d00baddce899010831a73f4f436ee99a"
+    "signature": "3c1b34eaad4afdb58f9f753f3cefbd0271efcbb4"
   },
   "compilationOptions": {
     "defines": [
@@ -23,6 +23,7 @@
     ".NETCoreApp,Version=v2.0": {
       "CountriesList/1.0.0": {
         "dependencies": {
+          "BuildBundlerMinifier": "2.6.362",
           "Microsoft.AspNetCore.All": "2.0.5",
           "Microsoft.EntityFrameworkCore.Tools": "2.0.1",
           "Microsoft.NETCore.App": "2.0.0",
@@ -35,6 +36,7 @@
           "CountriesList.dll": {}
         }
       },
+      "BuildBundlerMinifier/2.6.362": {},
       "Libuv/1.10.0": {
         "dependencies": {
           "Microsoft.NETCore.Platforms": "2.0.0"
@@ -4237,6 +4239,13 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "BuildBundlerMinifier/2.6.362": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-J8vHrhvkvBAkzf5eA0zDu9Z4RbVlA8lYWGq0UyvWh98kKpqQZpzUe3yC89Rq9nQyiO0pdULrPPs9sSmx+xq8jA==",
+      "path": "buildbundlerminifier/2.6.362",
+      "hashPath": "buildbundlerminifier.2.6.362.nupkg.sha512"
     },
     "Libuv/1.10.0": {
       "type": "package",
